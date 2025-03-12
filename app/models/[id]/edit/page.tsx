@@ -6,12 +6,12 @@ import { getLanguageModel } from "@/lib/api"
 export const dynamic = "force-dynamic"
 
 interface PageProps {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export default async function EditModelPage({ params }: PageProps) {
   try {
-    const { id } = params;
+    const { id } = await params;
     const model = await getLanguageModel(id);
 
     if (!model) {
