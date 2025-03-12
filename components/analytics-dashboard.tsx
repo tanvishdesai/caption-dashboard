@@ -12,14 +12,15 @@ import {
   ResponsiveContainer,
   LineChart,
   Line,
-  RadialBarChart,
-  RadialBar,
+  PieChart,
+  Pie,
+  Cell,
 } from "recharts"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Badge } from "@/components/ui/badge"
-import { TrendingUp, TrendingDown, BarChart3, LineChart as LineChartIcon, PieChart } from "lucide-react"
+import { TrendingUp, TrendingDown, BarChart3, LineChart as LineChartIcon, PieChart as PieChartIcon } from "lucide-react"
 import type { LanguageModel } from "@/lib/types"
 
 interface AnalyticsDashboardProps {
@@ -62,24 +63,16 @@ export function AnalyticsDashboard({ models }: AnalyticsDashboardProps) {
     { name: "V2", average: v2Average, count: v2Models.length, fill: "hsl(var(--secondary))" },
   ]
 
+  // Prepare data for pie chart
+  const pieData = [
+    { name: "V1", value: v1Models.length, fill: "hsl(var(--primary))" },
+    { name: "V2", value: v2Models.length, fill: "hsl(var(--secondary))" },
+  ];
+
   // Get top performing language and model version distribution
   const topPerformer = sortedModels.length > 0 ? sortedModels[0] : null
   const v1Percentage = models.length ? (v1Models.length / models.length) * 100 : 0
   const v2Percentage = models.length ? (v2Models.length / models.length) * 100 : 0
-
-  // Prepare data for radial chart
-  const radialData = [
-    {
-      name: "V1",
-      value: v1Average,
-      fill: "hsl(var(--primary))",
-    },
-    {
-      name: "V2",
-      value: v2Average,
-      fill: "hsl(var(--secondary))",
-    }
-  ]
 
   // Calculate performance change indicators
   const isImproved = v2Average > v1Average
@@ -102,7 +95,7 @@ export function AnalyticsDashboard({ models }: AnalyticsDashboardProps) {
                 <span className="font-medium text-primary">{v1Models.length}</span> on V1, 
                 <span className="font-medium text-secondary ml-1">{v2Models.length}</span> on V2
               </p>
-              <PieChart className="text-muted-foreground h-5 w-5" />
+              <PieChartIcon className="text-muted-foreground h-5 w-5" />
             </div>
           </CardContent>
         </Card>
@@ -331,7 +324,7 @@ export function AnalyticsDashboard({ models }: AnalyticsDashboardProps) {
             <span>Version Comparison</span>
           </TabsTrigger>
           <TabsTrigger value="language-distribution" className="flex items-center gap-2">
-            <PieChart className="h-4 w-4" />
+            <PieChartIcon className="h-4 w-4" />
             <span>Language Distribution</span>
           </TabsTrigger>
         </TabsList>
@@ -494,30 +487,30 @@ export function AnalyticsDashboard({ models }: AnalyticsDashboardProps) {
               <CardContent>
                 <div className="h-44 mx-auto">
                   <ResponsiveContainer width="100%" height="100%">
-                    <RadialBarChart 
-                      innerRadius="40%" 
-                      outerRadius="100%" 
-                      data={versionComparisonData} 
-                      startAngle={180} 
-                      endAngle={0}
-                    >
-                      <RadialBar
-                        minAngle={15}
-                        background
-                        clockWise={true}
-                        dataKey="count"
-                        cornerRadius={10}
-                      />
+                    <PieChart>
+                      <Pie
+                        data={pieData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        outerRadius={80}
+                        fill="#8884d8"
+                        dataKey="value"
+                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      >
+                        {pieData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.fill} />
+                        ))}
+                      </Pie>
                       <Tooltip
                         formatter={(value) => [value, "Languages"]}
-                        labelFormatter={(label) => `Model Version: ${label}`}
                         contentStyle={{ 
                           backgroundColor: "hsl(var(--background))",
                           border: "1px solid hsl(var(--border))",
                           borderRadius: "0.5rem"
                         }}
                       />
-                    </RadialBarChart>
+                    </PieChart>
                   </ResponsiveContainer>
                 </div>
                 

@@ -80,7 +80,7 @@ export function ModelDetails({ model }: ModelDetailsProps) {
     if (isEditing && customFields.length === 0) {
       loadCustomFields()
     }
-  }, [isEditing])
+  }, [isEditing, customFields.length])
 
   const loadCustomFields = async () => {
     setIsLoading(true)
