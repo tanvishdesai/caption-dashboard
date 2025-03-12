@@ -48,7 +48,8 @@ export const uploadImage = async (image: File | string): Promise<string> => {
       response.$id
     );
     
-    return fileUrl.href;
+    // Just return the fileUrl directly as it's already a string
+    return fileUrl;
   } catch (error) {
     console.error('Error uploading image:', error);
     throw new Error('Failed to upload image');
