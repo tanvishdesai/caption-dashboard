@@ -15,7 +15,7 @@ import { Separator } from "@/components/ui/separator"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import type { CustomField, LanguageModel, PredefinedImage, CreateModelPayload, UpdateModelPayload } from "@/lib/types"
 import { createLanguageModel, updateLanguageModel } from "@/lib/api"
-
+import { useToast } from "@/hooks/use-toast"
 // These would typically come from your database or a constant file
 const PREDEFINED_IMAGES: PredefinedImage[] = [
   {
@@ -63,27 +63,29 @@ interface ModelFormProps {
 
 export function ModelForm({ customFields, model, onSuccess }: ModelFormProps) {
   const router = useRouter()
+  const { toast } = useToast()  
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState<Partial<LanguageModel>>(
     model || {
       modelVersion: "V1",
       language: "",
-      bleuScore: 0,
+      bleuScore: 0.0,
       captions: ["", "", "", "", ""],
       remarks: "",
-     
+      customFields: {},
     },
   )
   const [trainingImage, setTrainingImage] = useState<File | null>(null)
-
+  const [imagePreview, setImagePreview] = useState<string | null>(model?.trainingImage || null)
+  
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
   const handleBleuScoreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = Number.parseInt(e.target.value)
-    setFormData((prev) => ({ ...prev, bleuScore: isNaN(value) ? 0 : value }))
+    const value = parseFloat(e.target.value)
+    setFormData((prev) => ({ ...prev, bleuScore: isNaN(value) ? 0.0 : value }))
   }
 
   const handleModelVersionChange = (value: "V1" | "V2") => {
@@ -108,7 +110,15 @@ export function ModelForm({ customFields, model, onSuccess }: ModelFormProps) {
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setTrainingImage(e.target.files[0])
+      const file = e.target.files[0]
+      setTrainingImage(file)
+
+      // Create a preview URL for the image
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string)
+      }
+      reader.readAsDataURL(file)
     }
   }
 
@@ -136,7 +146,11 @@ export function ModelForm({ customFields, model, onSuccess }: ModelFormProps) {
           updatePayload.trainingImage = model.trainingImage;
         }
   
-        await updateLanguageModel(model.id, updatePayload);
+        await updateLanguageModel(model.$id, updatePayload);
+        toast({
+          title: "Model updated",
+          description: "The language model has been updated successfully.",
+        });
       } else {
         // Creating a new model
         const createPayload: CreateModelPayload = {
@@ -153,15 +167,25 @@ export function ModelForm({ customFields, model, onSuccess }: ModelFormProps) {
         }
   
         await createLanguageModel(createPayload);
+        toast({
+          title: "Model created",
+          description: "The new language model has been added successfully.",
+        });
       }
   
       if (onSuccess) {
         onSuccess();
       } else {
         router.push("/");
+        router.refresh();
       }
     } catch (error) {
       console.error("Error saving model:", error);
+      toast({
+        title: "Error",
+        description: "There was a problem saving the language model.",
+        variant: "destructive",
+      });
     } finally {
       setIsSubmitting(false);
     }
@@ -212,7 +236,7 @@ export function ModelForm({ customFields, model, onSuccess }: ModelFormProps) {
                   id="bleuScore"
                   name="bleuScore"
                   type="number"
-                  step="1"
+                  step="0.01"
                   min="0"
                   max="100"
                   value={formData.bleuScore}
@@ -243,10 +267,28 @@ export function ModelForm({ customFields, model, onSuccess }: ModelFormProps) {
                 accept="image/*"
                 onChange={handleImageChange}
               />
-              {model?.trainingImage && !trainingImage && (
-                <p className="text-sm text-muted-foreground mt-1">
-                  Current image will be kept if no new image is uploaded.
-                </p>
+              {imagePreview && (
+                <div className="mt-2 relative h-[200px] w-full max-w-md rounded-md overflow-hidden border">
+                  <Image
+                    src={imagePreview || "/placeholder.svg"}
+                    alt="Training loss preview"
+                    fill
+                    className="object-contain"
+                  />
+                </div>
+              )}
+              {model?.trainingImage && !imagePreview && (
+                <div className="mt-2">
+                  <p className="text-sm text-muted-foreground mb-2">Current image:</p>
+                  <div className="relative h-[200px] w-full max-w-md rounded-md overflow-hidden border">
+                    <Image
+                      src={model.trainingImage || "/placeholder.svg"}
+                      alt="Current training loss"
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                </div>
               )}
             </div>
           </div>
@@ -357,4 +399,3 @@ export function ModelForm({ customFields, model, onSuccess }: ModelFormProps) {
     </form>
   )
 }
-

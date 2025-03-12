@@ -1,7 +1,7 @@
 "use client"
 
 import Image from "next/image"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Pencil, Trash2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/dialog"
 import { ModelForm } from "@/components/model-form"
 import type { CustomField, LanguageModel, PredefinedImage } from "@/lib/types"
-import { deleteLanguageModel, getCustomFields, getFilePreview } from "@/lib/api" // Added getFilePreview
+import { deleteLanguageModel, getCustomFields, getFilePreview } from "@/lib/api"
 import { useRouter } from "next/navigation"
 
 // These would typically come from your database or a constant file
@@ -69,17 +69,49 @@ export function ModelDetails({ model }: ModelDetailsProps) {
   const [isEditing, setIsEditing] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [customFields, setCustomFields] = useState<CustomField[]>([])
+  const [isLoading, setIsLoading] = useState(false)
 
-  const handleDelete = async () => {
-    await deleteLanguageModel(model.$id)
-    router.push("/")
-  }
+  // Ensure we have a documentId for the model
+  // In the first version, the model ID was stored as $id
+  const modelId = model.$id || model.id || ''
+
+  // Added useEffect to load custom fields when edit dialog is opened
+  useEffect(() => {
+    if (isEditing && customFields.length === 0) {
+      loadCustomFields()
+    }
+  }, [isEditing])
 
   const loadCustomFields = async () => {
-    if (isEditing && customFields.length === 0) {
+    setIsLoading(true)
+    try {
       const fields = await getCustomFields()
       setCustomFields(fields)
+    } catch (error) {
+      console.error("Error loading custom fields:", error)
+    } finally {
+      setIsLoading(false)
     }
+  }
+
+  const handleDelete = async () => {
+    if (!modelId) {
+      console.error("Cannot delete: Missing model ID")
+      return
+    }
+    
+    try {
+      await deleteLanguageModel(modelId)
+      router.push("/")
+      router.refresh()
+    } catch (error) {
+      console.error("Error deleting model:", error)
+    }
+  }
+
+  const handleEditSuccess = () => {
+    setIsEditing(false)
+    router.refresh()
   }
 
   return (
@@ -94,18 +126,29 @@ export function ModelDetails({ model }: ModelDetailsProps) {
         <div className="flex items-center gap-2">
           <Dialog open={isEditing} onOpenChange={setIsEditing}>
             <DialogTrigger asChild>
-              <Button variant="outline" size="sm" onClick={loadCustomFields}>
+              <Button variant="outline" size="sm">
                 <Pencil className="h-4 w-4 mr-2" />
                 Edit
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-4xl">
+            <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>Edit Language Model</DialogTitle>
                 <DialogDescription>Make changes to the language model details.</DialogDescription>
               </DialogHeader>
-              {customFields.length > 0 && (
-                <ModelForm customFields={customFields} model={model} onSuccess={() => setIsEditing(false)} />
+              {isLoading ? (
+                <div className="flex justify-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                </div>
+              ) : (
+                <ModelForm 
+                  customFields={customFields} 
+                  model={{
+                    ...model,
+                    documentId: modelId // Explicitly add documentId to the model
+                  }} 
+                  onSuccess={handleEditSuccess}
+                />
               )}
             </DialogContent>
           </Dialog>

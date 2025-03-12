@@ -35,18 +35,24 @@ export function LanguageModelList({ models }: LanguageModelListProps) {
             <CardContent className="flex-1 p-6">
               <div className="flex items-center justify-between mb-2">
                 <Badge variant="outline">{model.modelVersion}</Badge>
-                <Badge variant={getBadgeVariant(model.bleuScore)}>BLEU: {model.bleuScore.toFixed(2)}</Badge>
+                {model.bleuScore !== null && model.bleuScore !== undefined ? (
+                  <Badge variant={getBadgeVariant(Number(model.bleuScore))}>
+                    BLEU: {Number(model.bleuScore).toFixed(2)}
+                  </Badge>
+                ) : (
+                  <Badge variant="outline">BLEU: N/A</Badge>
+                )}
               </div>
               <h3 className="font-semibold text-xl mb-2">{model.language}</h3>
               <p className="text-sm text-muted-foreground line-clamp-3">{model.remarks || "No remarks provided"}</p>
             </CardContent>
             <CardFooter className="border-t p-4">
-            <Link
-              href={`/models/${model.$id}`}
-              className="w-full inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
-            >
-              View Details
-            </Link>
+              <Link
+                href={`/models/${model.$id}`}
+                className="w-full inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-4 py-2"
+              >
+                View Details
+              </Link>
             </CardFooter>
           </Card>
         ))}
