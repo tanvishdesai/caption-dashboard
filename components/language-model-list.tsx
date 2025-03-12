@@ -19,7 +19,15 @@ export function LanguageModelList({ models }: LanguageModelListProps) {
 
   return (
     <div className="space-y-4">
-
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          placeholder="Search languages..."
+          className="pl-9"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
+      </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {filteredModels.map((model, index) => (

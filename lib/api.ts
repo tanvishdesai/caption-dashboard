@@ -42,8 +42,8 @@ export async function getLanguageModel(id: string): Promise<LanguageModel | null
       id
     );
     return model;
-  } catch (error: any) {
-    if (error?.code === 404) {
+  } catch (error: unknown) {
+    if (typeof error === 'object' && error && 'code' in error && error.code === 404) {
       console.log(`Model with ID ${id} not found`);
       return null;
     }

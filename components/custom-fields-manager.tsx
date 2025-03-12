@@ -136,7 +136,7 @@ export function CustomFieldsManager({ initialFields }: CustomFieldsManagerProps)
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Custom Field</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete the "{fieldToDelete?.name}" field? This action cannot be undone.
+              Are you sure you want to delete the &ldquo;{fieldToDelete?.name}&rdquo; field? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

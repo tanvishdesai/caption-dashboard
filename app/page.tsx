@@ -2,6 +2,7 @@ import { DashboardHeader } from "@/components/dashboard-header"
 import { EmptyState } from "@/components/empty-state"
 import { LanguageModelList } from "@/components/language-model-list"
 import { getLanguageModels } from "@/lib/api"
+import Link from "next/link"
 
 export default async function DashboardPage() {
   const models = await getLanguageModels()
@@ -18,12 +19,12 @@ export default async function DashboardPage() {
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <a
+            <Link
               href="/models/new"
               className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2"
             >
               Add New Language
-            </a>
+            </Link>
           </div>
         </div>
 
