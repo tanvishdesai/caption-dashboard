@@ -9,6 +9,7 @@ interface EditModelPageProps {
   params: {
     id: string
   }
+  searchParams?: { [key: string]: string | string[] | undefined }
 }
 
 export default async function EditModelPage({ params }: EditModelPageProps) {
