@@ -5,8 +5,14 @@ import { getLanguageModel } from "@/lib/api"
 
 export const dynamic = "force-dynamic"
 
-export default async function EditModelPage({ params }: { params: { $id: string } }) {
-  const model = await getLanguageModel(params.$id)
+interface EditModelPageProps {
+  params: {
+    id: string
+  }
+}
+
+export default async function EditModelPage({ params }: EditModelPageProps) {
+  const model = await getLanguageModel(params.id)
   
   if (!model) {
     notFound()
